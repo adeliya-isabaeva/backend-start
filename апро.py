@@ -1,1 +1,0 @@
-print(not(not(not(5>9))))
