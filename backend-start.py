@@ -62,21 +62,6 @@ def get_items(min_price: Optional[float] = None):
 
     return result
 
-@app.get("/stats")
-def get_stats_endpoint():
-    try:
-        stats = get_stats()
-
-        # stats будет кортежем, например: (3, 365.5)
-        # Но нам нужен красивый словарь для JSON
-        return {
-            "count": stats["count"],
-            "total_price": stats["total_price"]
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при получении статистики: {str(e)}")
-
-
 # ЭТА ФУНКЦИЯ (ОДИН ТОВАР ПО ID) НУЖДАЕТСЯ В ЗАМЕНЕ:
 # Она должна искать в БД, а не в списке items_db
 @app.get("/items/{item_id}", response_model=ItemOut)
