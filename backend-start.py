@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from database import get_connection
+from database import get_connection, get_stats
 import sqlite3
 
 app = FastAPI()
@@ -86,16 +86,9 @@ def get_item(item_id: int):
 
 
 @app.get("/stats")
-def get_stats():
-    conn = get_connection()
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT COUNT(*) AS count, COALESCE(SUM(price), 0) AS total_price FROM items")
-    row = cursor.fetchone()
-    conn.close()
-
-    return {"count": row["count"], "total_price": row["total_price"]}
+def get_stats_endpoint():
+    stats = get_stats()  # <-- «Эй, кухня, дай статистику!»
+    return stats  # <-- «И сразу отдаю её гостю»
 
 
 # ВАЖНО: Функция create_item тоже должна писать в БД, а не в список.
