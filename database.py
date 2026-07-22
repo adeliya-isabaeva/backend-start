@@ -54,3 +54,17 @@ def seed_data():
          print("В базе уже есть товары, seed не нужен.")
 
     conn.close()
+
+
+def get_stats():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Магия SQL: база сама всё посчитает и вернёт одну строчку
+    cursor.execute("SELECT COUNT(*) AS count, SUM(price) AS total_price FROM items")
+
+    # fetchone() достаёт только одну строку результата
+    row = cursor.fetchone()
+
+    conn.close()
+    return row
