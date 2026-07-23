@@ -18,15 +18,17 @@ def init_db():
 
     create_table_sql = """
     CREATE TABLE IF NOT EXISTS items (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,         
         name TEXT NOT NULL,
-        price REAL NOT NULL
-    );
+        price REAL NOT NULL,
+        description TEXT
+    )
     """
 
     cursor.execute(create_table_sql)
     conn.commit()  # Важно: сохраняем изменения в базе
     conn.close()
+    print("✅ База данных инициализирована. Таблица items готова.")
 
 
 def seed_data():

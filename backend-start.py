@@ -3,19 +3,21 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from database import get_connection, get_stats
 import sqlite3
+from database import init_db
+init_db()
 
 app = FastAPI()
-
 
 class ItemOut(BaseModel):
     id: int
     name: str
     price: float
-
+    description: Optional[str] = None
 
 class Item(BaseModel):
     name: str
     price: float = Field(gt=0)
+    description: Optional[str] = None
 
 
 # УДАЛИ эти строки (старый список и счетчик), они больше не нужны для чтения из БД:
@@ -96,9 +98,31 @@ def get_stats_endpoint():
 # Если нужно сделать запись в БД - скажи, я дам код.
 @app.post("/items/", response_model=ItemOut)
 def create_item(item: Item):
-    # ЗАГЛУШКА: Сейчас эта функция не работает с БД, она ломалась бы из-за next_id
-    # Для плана "Чтение из БД" этот эндпоинт можно пока закомментировать:
-    raise HTTPException(status_code=501, detail="Создание товара через БД будет реализовано позже")
+    conn = get_connection()          # ты это уже написала — отлично
+    cursor = conn.cursor()           # обязательно нужен курсор для SQL
+
+    try:
+        cursor.execute(
+            "INSERT INTO items (name, price, description) VALUES (?, ?, ?)",
+            (item.name, item.price, item.description)
+        )
+        conn.commit()                 # без этого INSERT не сохранится!
+
+        new_id = cursor.lastrowid     # вот тут база сама отдаёт ID, который создала
+
+        return ItemOut(
+            id=new_id,
+            name=item.name,
+            price=item.price,
+            description=item.description
+        )
+
+    except Exception as e:
+        conn.rollback()               # если ошибка — отменяем всё, что начали
+        raise HTTPException(status_code=500, detail=f"Ошибка при создании: {e}")
+
+    finally:
+        conn.close()                  # вот это обязательно: закрываем соединение всегда
 
 
 if __name__ == "__main__":
