@@ -8,17 +8,6 @@ init_db()
 
 app = FastAPI()
 
-class ItemOut(BaseModel):
-    id: int
-    name: str
-    price: float
-    description: Optional[str] = None
-
-class Item(BaseModel):
-    name: str
-    price: float = Field(gt=0)
-    description: Optional[str] = None
-
 
 # УДАЛИ эти строки (старый список и счетчик), они больше не нужны для чтения из БД:
 # items_db = [...]
@@ -98,7 +87,7 @@ def get_stats_endpoint():
 # Если нужно сделать запись в БД - скажи, я дам код.
 @app.post("/items/", response_model=ItemOut)
 def create_item(item: Item):
-    conn = get_connection()          # ты это уже написала — отлично
+    conn = get_connection()
     cursor = conn.cursor()           # обязательно нужен курсор для SQL
 
     try:

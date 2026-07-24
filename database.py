@@ -70,3 +70,11 @@ def get_stats():
 
     conn.close()
     return row
+
+if __name__ == "__main__":
+    # Этот код сработает ТОЛЬКО если ты запустишь database.py напрямую
+    # Например: python database.py
+    init_db()
+    seed_data()
+    stats = get_stats()
+    print(f"Статистика: товаров={stats}, общая сумма={stats}")
