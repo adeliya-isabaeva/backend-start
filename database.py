@@ -28,7 +28,7 @@ def init_db():
     cursor.execute(create_table_sql)
     conn.commit()  # Важно: сохраняем изменения в базе
     conn.close()
-    print("✅ База данных инициализирована. Таблица items готова.")
+    print(" База данных инициализирована. Таблица items готова.")
 
 
 def seed_data():
