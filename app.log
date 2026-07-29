@@ -1,0 +1,8 @@
+2026-07-28 05:49:21,396 | INFO |  Server starting, initializing DB...
+2026-07-28 05:49:21,406 | INFO |  Database initialized
+2026-07-28 05:49:25,784 | INFO | GET / called
+2026-07-29 03:06:46,909 | INFO |  Server starting, initializing DB...
+2026-07-29 03:06:46,927 | INFO |  Database initialized
+2026-07-29 03:06:50,784 | INFO | GET / called
+2026-07-29 03:12:16,282 | INFO | POST /items/ called
+2026-07-29 03:12:16,313 | INFO |  Создан товар id=6, name=strawberry

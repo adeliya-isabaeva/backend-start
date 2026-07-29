@@ -129,11 +129,12 @@
 ## Скриншоты работы API
 
 ### Интерфейс Swagger (эндпоинт создания товара)
-![Swagger UI с полями запроса](screenshots/swagger-post-expanded.png)
+![Swagger UI с полями запроса](screenshots/swagger.png)
 
 ### Ответ сервера (реальный JSON с id: 6)
-![JSON ответ после POST-запроса](screenshots/swagger-response.png)
+![JSON ответ после POST-запроса](screenshots/response.png)
 
-
+### Статус ответа сервера
+![Статус ответа сервера: 200 OK](screenshots/server-logs-with-db-init.png)
 
 
