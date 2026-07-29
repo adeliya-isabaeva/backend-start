@@ -1,28 +1,32 @@
 from database import get_connection
 
-conn = get_connection()
-cursor = conn.cursor()
+import pytest
 
-# Делаем запрос
-row = conn.execute("PRAGMA database_list;").fetchone()
 
-# row — это как коробочка с 3 вещами: [0]=seq, [1]=name, [2]=file_path
-# Нам нужен именно третий элемент — [2]
-file_path = row[2]
+@pytest.fixture
+def db_cursor():
+    """Эта штука сама откроет и закроет базу для теста"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    yield cursor
+    conn.close()
 
-print("База данных подключена! Файл:", file_path)
 
-# --- ДОБАВЛЯЕМ ЭТОТ БЛОК ---
-print("\n--- Смотрим товары из таблицы items ---")
+def test_check_items_in_db(db_cursor):
+    """Тест: проверяем, что база подключена и товары есть"""
 
-# Делаем обычный SELECT запрос
-cursor.execute("SELECT * FROM items")
-rows = cursor.fetchall()
+    # --- Твой блок с PRAGMA (проверка пути) ---
+    row = db_cursor.execute("PRAGMA database_list;").fetchone()
+    file_path = row
+    # Вместо print используем assert: если пути нет — тест упадёт
+    assert file_path is not None, f"Не удалось найти путь к БД! Получено: {row}"
 
-# Красиво выводим каждый товар
-for row in rows:
-    # row — это кортеж: (id, name, price)
-    item_id, name, price = row
-    print(f"ID: {item_id} | Товар: {name} | Цена: {price} руб.")
+    # --- Твой блок с SELECT (проверка товаров) ---
+    db_cursor.execute("SELECT * FROM items")
+    rows = db_cursor.fetchall()
 
-conn.close()
+    # Вместо красивого вывода в цикле используем assert
+    assert len(rows) > 0, "Таблица items пуста! Ожидались товары."
+
+    # Если хочешь проверить конкретный товар (как в твоём выводе), раскомментируй строку ниже:
+    # assert rows == "Пирожок с вишней", "Первый товар не тот, что ожидался."
