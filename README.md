@@ -55,14 +55,14 @@
 
   **Пример ответа:**
 
-[  ```json
-  {
-    "access_token": "test_token_12345_just_for_swagger",
-    "token_type": "bearer"
-  }
+    ```json
+    {
+     "access_token": "test_token_12345_just_for_swagger",
+     "token_type": "bearer"
+    }
   
-    `GET /protected` — защищённый ресурс.]()
-  
+- `GET /protected` — защищённый ресурс.
+
 Требуется заголовок: `Authorization: Bearer <access_token>`.
 
 ## CRUD (создание товаров)
