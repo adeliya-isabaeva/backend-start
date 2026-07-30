@@ -6,3 +6,7 @@
 2026-07-29 03:06:50,784 | INFO | GET / called
 2026-07-29 03:12:16,282 | INFO | POST /items/ called
 2026-07-29 03:12:16,313 | INFO |  Создан товар id=6, name=strawberry
+2026-07-30 02:56:12,882 | INFO |  Server starting, initializing DB...
+2026-07-30 02:56:12,882 | INFO |  Database initialized
+2026-07-30 03:30:27,543 | INFO | GET / called
+2026-07-30 03:30:57,126 | INFO | GET /items/4 called
