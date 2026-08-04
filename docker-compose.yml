@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: shop-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - shop-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: shop-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - shop-network
+
+  app:
+    build: .
+    container_name: shop-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    # ЭТА СТРОКА КРИТИЧЕСКИ ВАЖНА — она подключает файл .env
+    env_file:
+      - .env
+    environment:
+      DB_HOST: \${DB_HOST}
+      DB_PORT: \${DB_PORT}
+      DB_NAME: \${DB_NAME}
+      DB_USER: \${DB_USER}
+      DB_PASSWORD: \${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - shop-network
+
+
+
+volumes:
+  pgdata:
+
+networks:
+  shop-network:
+    driver: bridge
