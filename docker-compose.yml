@@ -1,29 +1,35 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15-alpine
     container_name: shop-db
     restart: unless-stopped
+    # 👇 ЖЕСТКИЕ ЗНАЧЕНИЯ (НЕ переменные). Это решает проблему создания БД
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: shop_user
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_DB: shop_db
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - shop-network
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      # 👇 В проверке тоже используем жесткие значения, чтобы не зависеть от .env
+      test: ["CMD-SHELL", "pg_isready -U shop_user -d shop_db"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10  # Увеличили до 10, чтобы на Windows база точно успела запуститься
 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: shop-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: \${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: \${PGADMIN_PASSWORD}
     ports:
       - "5050:80"
     depends_on:
@@ -38,9 +44,9 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    # ЭТА СТРОКА КРИТИЧЕСКИ ВАЖНА — она подключает файл .env
     env_file:
       - .env
+    # 👇 Для сервиса app мы оставляем переменные, он будет брать их из твоего .env
     environment:
       DB_HOST: \${DB_HOST}
       DB_PORT: \${DB_PORT}
@@ -52,8 +58,6 @@ services:
         condition: service_healthy
     networks:
       - shop-network
-
-
 
 volumes:
   pgdata:
