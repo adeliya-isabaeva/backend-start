@@ -1,13 +1,16 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import declarative_base
 
-class ItemOut(BaseModel):
-    id: int
-    name: str
-    price: float
-    description: Optional[str] = None
+# Это "фундамент", от которого наследуются все таблицы.
+# Alembic будет смотреть именно сюда.
+Base = declarative_base()
 
-class Item(BaseModel):
-    name: str
-    price: float = Field(gt=0)
-    description: Optional[str] = None
+class Item(Base):
+    # Имя таблицы, которая появится в PostgreSQL
+    __tablename__ = "items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    price = Column(Float, nullable=False)
+    stock_quantity = Column(Integer, nullable=False, default=0)
+    description = Column(String, nullable=True)

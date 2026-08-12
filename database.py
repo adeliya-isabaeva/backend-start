@@ -83,9 +83,16 @@ from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # читает .env
+load_dotenv()  # загружает .env
 
-DATABASE_URL = os.getenv("DATABASE_URL")  # например: postgresql://user:pass@db:5432/shop
+# Собираем URL из отдельных переменных из .env — это надёжно и видно, что откуда берётся
+DB_HOST = os.getenv("DB_HOST", "db")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "shop_db")
+DB_USER = os.getenv("DB_USER", "shop_user")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "secret_password")
+
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

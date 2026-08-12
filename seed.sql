@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS items (
     name VARCHAR(255) NOT NULL,
     price NUMERIC(10, 2) NOT NULL DEFAULT 0,
     stock_quantity INT NOT NULL DEFAULT 0,
+    description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
