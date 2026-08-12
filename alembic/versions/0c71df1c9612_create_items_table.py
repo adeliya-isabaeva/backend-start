@@ -1,19 +1,21 @@
 """create items table
 
-Revision ID: <новая_ревизия>
-Revises: None
-Create Date: 2026-08-12 12:34:56.789012
+Revision ID: 0c71df1c9612
+Revises: 
+Create Date: 2026-08-12 16:03:23.211761
 
 """
+from typing import Sequence, Union
+
 from alembic import op
 import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'новая_ревизия'  # Alembic сам подставит сюда реальный ID, не меняй
-down_revision = None
-branch_labels = None
-depends_on = None
+revision: str = '0c71df1c9612'
+down_revision: Union[str, None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
@@ -26,7 +28,6 @@ def upgrade():
         sa.Column('description', sa.String(), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
-
 
 def downgrade():
     op.drop_table('items')
