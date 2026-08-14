@@ -94,7 +94,11 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "secret_password")
 
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+from sqlalchemy import create_engine
+
+engine = create_engine("postgresql://shop_user:secret_password@localhost:5432/shop_db", pool_pre_ping=True)
+
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_session() -> Session:
