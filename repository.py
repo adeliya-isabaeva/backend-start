@@ -1,10 +1,10 @@
 from typing import List, Optional, Dict
 from sqlalchemy import text
-from database import get_session
+from database import get_db
 
 
 def get_all_items() -> List[Dict]:
-    session = next(get_session())
+    session = next(get_db())
     try:
         result = session.execute(
             text("SELECT id, name, price, stock_quantity, description FROM items")
@@ -20,7 +20,7 @@ def create_item(
     stock_quantity: int,
     description: Optional[str] = None,
 ) -> Dict:
-    session = next(get_session())
+    session = next(get_db())
     try:
         result = session.execute(
             text(
@@ -48,7 +48,7 @@ def create_item(
 
 
 def get_item_by_id(item_id: int) -> Optional[dict]:
-    session = next(get_session())
+    session = next(get_db())
     try:
         result = session.execute(
             text(

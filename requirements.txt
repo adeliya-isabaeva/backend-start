@@ -1,14 +1,13 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 gunicorn
-gunicorn==23.0.0
-flask==3.0.0
-# другие ваши зависимости...
-python-dotenv==1.0.1
+python-dotenv
 python-multipart
 sqlalchemy
 psycopg2-binary
-pip freeze > requirements.txt
+alembic
+
+
 
 

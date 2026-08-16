@@ -65,7 +65,7 @@ def test_root_returns_200():
     assert response.status_code == 200
 
 
-def test_create_item_returns_201():
+def test_create_item_returns_201():  # <-- переименуем функцию
     payload = {
         "name": "Test Item",
         "price": 123.45,
@@ -74,17 +74,59 @@ def test_create_item_returns_201():
     }
     response = client.post("/items", json=payload)
 
-    if response.status_code != 201:
-        print("❌ Статус не 201:", response.status_code)
-        try:
-            print("❌ Ответ сервера:", response.json())
-        except Exception:
-            print("❌ Тело ответа не JSON")
-
-    assert response.status_code == 200
+    assert response.status_code == 201  # <-- теперь это будет правдой
     data = response.json()
 
-    # Проверяем, что данные вернулись корректно
     assert data["name"] == payload["name"]
-    assert abs(data["price"] - payload["price"]) < 0.01  # float сравнение
+    assert abs(data["price"] - payload["price"]) < 0.01
     assert data["stock_quantity"] == payload["stock_quantity"]
+
+def test_create_item_returns_422():  # <-- переименуем функцию
+    payload = {
+        "name": "Bad Item",
+        "price": -10.0,
+        "stock_quantity": 5,
+        "description": "Should fail"
+    }
+    response = client.post("/items", json=payload)
+
+    assert response.status_code == 422  # <-- теперь это будет правдой
+    data = response.json()
+
+ # 2. Проверяем, что в ответе есть список ошибок (стандартная структура FastAPI + Pydantic)
+    assert "detail" in data, "В ответе на 422 должно быть поле detail"
+    assert isinstance(data["detail"], list), "detail должен быть списком ошибок"
+    assert len(data["detail"]) > 0, "Должна быть хотя бы одна ошибка валидации"
+
+    # 3. (Опционально) Проверяем, что ошибка касается именно price
+    first_error = data["detail"][0]
+    # В loc путь к полю: ["body", "price"]
+    assert "price" in first_error.get("loc", []), "Ошибка должна относиться к полю price"
+
+def test_items_returns_200():  # Переименовали функцию, чтобы не путаться
+    response = client.get("/items")
+    assert response.status_code == 200  # Было 404, стало 200
+    data = response.json()
+    # Можно проверить, что это список (даже если он пустой)
+    assert isinstance(data, list)
+
+def test_get_item_by_nonexistent_id_returns_404():
+    # 1. Создаём товар, чтобы база не была пустой
+    payload = {"name": "Existing Item", "price": 99.99, "stock_quantity": 5}
+    create_resp = client.post("/items", json=payload)
+    assert create_resp.status_code == 201
+    real_id = create_resp.json()["id"]
+
+    # 2. Пробуем получить несуществующий ID
+    nonexistent_id = real_id + 1000
+    response = client.get(f"/items/{nonexistent_id}")
+
+    # 3. Проверяем статус
+    assert response.status_code == 404
+
+    data = response.json()
+
+    # 4. Проверяем текст ошибки.
+    # Так как у тебя "Товар не найден", ищем эти слова.
+    error_text = str(data).lower()
+    assert "товар" in error_text and "не найден" in error_text, "Ошибка должна говорить, что товар не найден"

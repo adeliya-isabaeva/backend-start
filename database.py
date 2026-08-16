@@ -101,7 +101,7 @@ engine = create_engine("postgresql://shop_user:secret_password@localhost:5432/sh
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_session() -> Session:
+def get_db() -> Session:
     """Создаёт сессию для работы с PostgreSQL (в Docker)"""
     session = SessionLocal()
     try:
