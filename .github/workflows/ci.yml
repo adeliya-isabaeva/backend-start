@@ -2,9 +2,9 @@ name: API CI/CD  # Название пайплайна — будет видно
 
 on:
   push:
-    branches: [ "main" ]  # Запускать, когда пушат в ветку main
+    branches: [ "main", "aug3-clean" ]  # <-- поменяли здесь
   pull_request:
-    branches: [ "main" ]  # Запускать, когда создают PR в main (на будущее)
+    branches: [ "main", "aug3-clean" ]  # <-- и здесь
 
 jobs:
   build-and-test:  # Имя задачи (job)
