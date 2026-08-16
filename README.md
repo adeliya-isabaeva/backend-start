@@ -137,4 +137,4 @@
 ### Статус ответа сервера
 ![Статус ответа сервера: 200 OK](screenshots/server-logs-with-db-init.png)
 
-
+Updated for pytest
