@@ -17,7 +17,7 @@ def read_items():
 
 @app.get("/items/{item_id}", response_model=ItemOut)
 def read_item(item_id: int, db: Session = Depends(get_db)):
-    item = get_item_by_id(item_id)  # <-- передаём db первым аргументом
+    item = get_item_by_id(item_id, db)  # Передаём ту самую сессию, которую дал FastAPI
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Товар не найден")
     return item

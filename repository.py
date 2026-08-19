@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict
 from sqlalchemy import text
 from database import get_db
-
+from sqlalchemy.orm import Session
 
 def get_all_items() -> List[Dict]:
     session = next(get_db())
@@ -47,16 +47,11 @@ def create_item(
         session.close()
 
 
-def get_item_by_id(item_id: int) -> Optional[dict]:
-    session = next(get_db())
-    try:
-        result = session.execute(
-            text(
-                "SELECT id, name, price, stock_quantity, description FROM items WHERE id = :id"
-            ),
-            {"id": item_id},
-        )
-        row = result.mappings().first()
-        return dict(row) if row else None
-    finally:
-        session.close()
+def get_item_by_id(item_id: int, db: Session) -> Optional[dict]:  # Получаем сессию снаружи
+    result = db.execute(
+        text("SELECT id, name, price, stock_quantity, description FROM items WHERE id = :id"),
+        {"id": item_id},
+    )
+    row = result.mappings().first()
+    return dict(row) if row else None
+    # Никаких try/finally, никаких close() — это теперь забота того, кто вызвал функцию
