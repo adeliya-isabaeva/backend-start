@@ -83,26 +83,28 @@ from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # загружает .env
+load_dotenv()  # загружает переменные из .env
 
-# Собираем URL из отдельных переменных из .env — это надёжно и видно, что откуда берётся
-DB_HOST = os.getenv("DB_HOST", "db")
+# Получаем настройки из переменных окружения.
+# Если их нет (локально без .env) — используем значения по умолчанию.
+# ВАЖНО: для локальной разработки поставь в .env DB_HOST=localhost,
+# а для CI (GitHub Actions) мы передадим DB_HOST=db через workflow.
+DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "shop_db")
 DB_USER = os.getenv("DB_USER", "shop_user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "secret_password")
 
+# Формируем URL на основе переменных
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-from sqlalchemy import create_engine
-
-engine = create_engine("postgresql://shop_user:secret_password@localhost:5432/shop_db", pool_pre_ping=True)
-
+# Создаём движок, используя сформированный URL, а не хардкод!
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Session:
-    """Создаёт сессию для работы с PostgreSQL (в Docker)"""
+    """Создаёт сессию для работы с PostgreSQL"""
     session = SessionLocal()
     try:
         yield session

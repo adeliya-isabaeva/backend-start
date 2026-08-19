@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: shop_user
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_DB: shop_db
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop_user -d shop_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: >
+      sh -c "
+      alembic upgrade head && 
+      pytest
+      "
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: shop_db
+      DB_USER: shop_user
+      DB_PASSWORD: secret_password
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Важно: монтируем текущую папку проекта внутрь контейнера,
+      # чтобы он видел твой код, а не старый из образа
+      - .:/app
+
+volumes:
+  pgdata_test:
