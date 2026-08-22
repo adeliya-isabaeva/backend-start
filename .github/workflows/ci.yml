@@ -17,16 +17,17 @@ jobs:
       db:
         image: postgres:15
         env:
-          POSTGRES_USER: shop_user
-          POSTGRES_PASSWORD: secret_password
-          POSTGRES_DB: shop_db
-        ports:
-          - 5432:5432
+          # В CI мы используем стандартного пользователя postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout repository
@@ -42,21 +43,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ШАГ 1: Применяем миграции, чтобы создать таблицы в пустой базе
-      # Если ты используешь Alembic. Если нет — см. примечание ниже.
+      # ШАГ 1: Миграции
+      # Мы жестко задаем URL здесь. Он ПЕРЕКРОЕТ любые другие настройки в коде.
+      # Формат: postgresql://user:pass@host:port/dbname
+      # host=db (это имя сервиса из блока services выше)
       - name: Apply DB Migrations
         run: alembic upgrade head
         env:
-          # Мы собираем URL прямо здесь, чтобы Alembic был счастлив
-          DATABASE_URL: postgresql://shop_user:secret_password@db:5432/shop_db
+          DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
 
-      # ШАГ 2: Запускаем тесты
+      # ШАГ 2: Тесты
+      # Если твои тесты собирают URL из отдельных переменных (DB_HOST, DB_USER и т.д.),
+      # мы передаем им те же самые данные, что и для миграций.
       - name: Run tests
         run: pytest
         env:
-          # Эти переменные подхватит твой database.py вместо дефолтных значений
           DB_HOST: db
           DB_PORT: 5432
-          DB_NAME: shop_db
-          DB_USER: shop_user
-          DB_PASSWORD: secret_password
+          DB_NAME: postgres
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          # Если твой код тестов тоже смотрит на DATABASE_URL, раскомментируй строку ниже:
+          # DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
