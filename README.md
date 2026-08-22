@@ -1,140 +1,184 @@
-# FastAPI Auth & Items API Demo
+# Shop API (учебный проект)
 
-Учебный бэкенд-сервис на FastAPI: CRUD для товаров, авторизация (OAuth2), защита API‑ключом. Проект демонстрирует понимание базовых паттернов разработки и безопасности.
+Учебный REST API для магазина на FastAPI + SQLAlchemy + PostgreSQL. Проект собран как полноценный бэкенд: с миграциями, автотестами и CI, но сделан в учебных целях — чтобы отработать весь стек от подключения БД до покрытия тестами.
 
-> ⚠️ **ВАЖНО: учебный проект**  
-> - Учётные данные (`admin` / `password`) и токены — тестовые, только для локальной проверки.  
-> - Логика авторизации намеренно упрощена для наглядности.  
-> **Не использовать в продакшен-системах.**
+## Цели проекта
+В рамках обучения отработаны:
+- разделение на слои (API / Repository / DB)
+- работа с реальной СУБД PostgreSQL (не SQLite)
+- миграции Alembic и применение схемы БД
+- валидация данных через Pydantic
+- автотесты (pytest) и автоматическая проверка в CI (GitHub Actions)
 
-## Стек технологий
+## Функционал
 
-- Python 3.10+
-- FastAPI + Uvicorn
-- SQLite (SQLAlchemy)
-- OAuth2 Password Flow
-- API Key защита
-- Swagger UI, ReDoc
+- `GET /` — проверка, что сервер работает
+- `GET /items` — список всех товаров
+- `GET /items/{item_id}` — товар по ID
+- `POST /items` — создание товара
 
-## Установка и запуск
+## Стек
 
-1. Установи зависимости:
+- FastAPI
+- SQLAlchemy (ORM)
+- Pydantic (валидация)
+- PostgreSQL (СУБД) + psycopg2 (драйвер)
+- Alembic (миграции)
+- pytest (тесты)
+- GitHub Actions (CI)
+
+## Как запустить локально
+
+1. **Запустите PostgreSQL** (локально или в Docker).  
+   Если используете Docker:
+ 
+   ```bash
+   docker compose up -d.
+
+2. Создайте виртуальное окружение:
+
+   ```bash
+   python -m venv venv
+
+3. Активируйте его (Windows):
+
+   ```bash
+   venv\Scripts\activate
+
+4. Установите зависимости:
+
    ```bash
    pip install -r requirements.txt
 
-2. Создай (или проверь) файл `.env` в папке проекта. В нём должна быть строка:
-    
-    ```text
-    API_KEY=super_secret_key_123
+5. Настройте переменные окружения: создайте .env на основе .env.example.
+Проверьте, что DATABASE_URL указывает на ваш PostgreSQL, например:
 
-3. Запусти сервер:
+   ```python
+DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
+   ```
+6. Примените миграции:
 
-    ```bash
-    uvicorn main:app --reload
+   ```bash
+   alembic upgrade head
 
-4. Открой документацию:
+7. Запустите сервер:
 
-    Swagger UI (с кнопками «Try it out»): http://127.0.0.1:8000/docs
-    ReDoc (аккуратная справка): http://127.0.0.1:8000/redoc
+   ```bash
+   uvicorn main:app --reload
 
-## Эндпоинты
+Сервер будет доступен по адресу: `http://127.0.0.1:8000`.
 
-### Публичные (без авторизации)
+**Документация и тестирование API**
 
-- `GET /` — проверка работы сервера.
-- `GET /items` — список товаров.
-- `GET /items/{item_id}` — получение товара по ID.
-- `GET /stats` — статистика.
+После запуска сервера откройте:
 
----
+    Swagger UI (интерактивная документация и тесты эндпоинтов):
 
-### Авторизация (OAuth2 Password Flow)
+    `http://localhost:8000/docs`
 
-- `POST /token` — получить токен.  
-  Входные данные: `username=admin`, `password=password`.  
+    ReDoc (альтернативная документация):
 
-  **Пример ответа:**
+    `http://localhost:8000/redoc`
 
-    ```json
-    {
-     "access_token": "test_token_12345_just_for_swagger",
-     "token_type": "bearer"
-    }
-  
-- `GET /protected` — защищённый ресурс.
+    Важно: Swagger генерируется самим FastAPI и доступен только когда сервер запущен и успешно подключена база данных.
 
-Требуется заголовок: `Authorization: Bearer <access_token>`.
+##Тесты
 
-## CRUD (создание товаров)
+    Локально: 
+   ```bash
+   pytest
 
-    `POST /items/` — создать товар.
+    Автоматически: при каждом push тесты запускаются в CI через 
+  `.github/workflows/ci.yml`.
 
-    Тело запроса (JSON):
+## Примеры запросов (curl)
 
-    ```json
-    {
-      "name": "Новый товар",
-      "price": 1200,
-      "description": "Описание товара"
-    }
+Эти команды позволяют проверить работу API без браузера. Сервер должен быть запущен:
+ 
+   ```bash
+   uvicorn main:app --reload
 
-## Пример типичного запроса и ответа
+### Быстрый старт
 
-Этот пример показывает, как клиент взаимодействует с эндпоинтом создания товара.
+   ```bash
+# Статус сервера
+   curl http://localhost:8000/
 
-Запрос (curl):
+# Список товаров
+   curl http://localhost:8000/items
 
-    ```bash
-    curl -X 'POST' 'http://127.0.0.1:8000/items/' \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "name": "strawberry",
-        "price": 400,
-        "description": "sweet"
-      }'
+# Товар по ID
+   curl http://localhost:8000/items/1
 
-Ответ (JSON):
+# Создание товара (POST)
+   curl -X POST http://localhost:8000/items \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Планшет\",\"price\":45000,\"stock_quantity\":7,\"description\":\"Планшет для учёбы\"}"
 
-    ```json
-    {
-      "id": 6,
-      "name": "strawberry",
-      "price": 400,
-      "description": "sweet"
-    }
+## Что будет в ответе (примеры)
 
-## Безопасность и .gitignore
+### От `GET /`
+```json
+{
+  "status": "ok",
+  "message": "Сервер работает"
+}
 
-Файл `.env` и служебные данные категорически запрещено коммитить в Git.
+### От POST /items (успех, 201 Created)
+```json
+{
+  "id": 5,
+  "name": "Планшет",
+  "price": 45000,
+  "stock_quantity": 7,
+  "description": "Планшет для учёбы"
+}
 
-Убедись, что в твоём файле `.gitignore` (в корне проекта) есть следующие строки:
+### От GET /items/999 (товар не найден)
+```json
+{
+  "detail": "Товар не найден"
+}
+(и статус 404)
 
-    ```text
-    .env
-    venv/
-    __pycache__/
-    *.pyc
-    shop.db
-    .DS_Store
-    app.log
-    screenshots/
+## Примеры работы API
 
-Важно: если файл `.env` уже был добавлен в историю коммитов, простого добавления в `.gitignore` недостаточно. Выполни:
+### Документация и общая структура
+Здесь представлена автоматически сгенерированная документация Swagger UI, где видны все доступные эндпоинты и их методы.
 
-    ```bash
-    git rm --cached .env
-    git commit -m "Remove .env from tracking"
+![Обзор Swagger UI](screenshots/swagger-ui-overview.png)
 
-## Скриншоты работы API
+### Успешное получение данных
+Запрос `GET /items` возвращает пустой список (так как база изначально пуста). Статус `200 OK` подтверждает корректную работу соединения с базой данных и отсутствие ошибок на стороне сервера.
 
-### Интерфейс Swagger (эндпоинт создания товара)
-![Swagger UI с полями запроса](screenshots/swagger.png)
+![Успешный GET-запрос (список)](screenshots/get-items-200-ok.png)
 
-### Ответ сервера (реальный JSON с id: 6)
-![JSON ответ после POST-запроса](screenshots/response.png)
+### Получение элемента по ID
+Протестированы оба сценария работы эндпоинта `GET /items/{item_id}`:
+*   **Успешный ответ (200 OK):** элемент найден.
+*   **Ошибка (404 Not Found):** элемент с указанным ID не существует.
 
-### Статус ответа сервера
-![Статус ответа сервера: 200 OK](screenshots/server-logs-with-db-init.png)
+Такая проверка гарантирует, что API корректно обрабатывает как валидные, так и невалидные запросы.
 
-Updated for pytest
+![GET по ID (успех)](screenshots/get-items-item_id-200-ok.png)
+![GET по ID (ошибка 404)](screenshots/get-items-item_id-404-not_found.png)
+
+### Создание новой записи
+Запрос `POST /items` успешно создаёт новую запись в базе данных. Статус `201 Created` и тело ответа подтверждают, что данные были сохранены.
+
+![Создание товара (POST)](screenshots/post-items-201-created.png)
+
+##Структура проекта
+
+    `main.py` — роуты и эндпоинты
+    `repository.py` — логика работы с БД (CRUD)
+    `schemas.py` — Pydantic-модели
+    `database.py` — настройка сессии и подключения к PostgreSQL
+    `alembic/` — миграции
+    `tests/` — автотесты
+    `.github/workflows/ci.yml` — настройка CI
+    `.env`, `.env.example` — переменные окружения
+
+##Статус
+
+Проект учебный: сделан для отработки стека FastAPI + PostgreSQL + CI. Не предназначен для продакшена.

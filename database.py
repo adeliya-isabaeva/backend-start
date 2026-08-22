@@ -83,28 +83,25 @@ from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # загружает переменные из .env
+load_dotenv()
 
-# Получаем настройки из переменных окружения.
-# Если их нет (локально без .env) — используем значения по умолчанию.
-# ВАЖНО: для локальной разработки поставь в .env DB_HOST=localhost,
-# а для CI (GitHub Actions) мы передадим DB_HOST=db через workflow.
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME", "shop_db")
-DB_USER = os.getenv("DB_USER", "shop_user")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "secret_password")
+# 1. Сначала пробуем взять ГОТОВУЮ строку из переменной окружения
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Формируем URL на основе переменных
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+if not DATABASE_URL:
+    # 2. Если готовой нет (локальный запуск без Docker), собираем вручную
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5433")  # для локального запуска порт 5433
+    DB_NAME = os.getenv("DB_NAME", "shop_db")
+    DB_USER = os.getenv("DB_USER", "shop_user")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "secret_password")
 
-# Создаём движок, используя сформированный URL, а не хардкод!
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Session:
-    """Создаёт сессию для работы с PostgreSQL"""
     session = SessionLocal()
     try:
         yield session
