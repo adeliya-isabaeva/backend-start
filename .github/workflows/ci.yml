@@ -1,4 +1,4 @@
-name: CI Pipeline (Debug)
+name: CI Pipeline
 
 on:
   push:
@@ -26,8 +26,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 15
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout repository
@@ -43,27 +41,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # --- ДИАГНОСТИЧЕСКИЙ ШАГ: ПРОВЕРКА СВЯЗИ С БАЗОЙ ---
-      # Этот шаг НЕ трогает твой код. Он просто проверяет, может ли раннер увидеть сервис "db"
-      - name: DEBUG: Check if DB service is reachable
-        run: |
-          echo "Пытаемся пропинговать хост 'db'..."
-          getent hosts db
-          if [ $? -eq 0 ]; then
-            echo "✅ ХОСТ 'db' НАЙДЕН! Сеть работает."
-          else
-            echo "❌ ХОСТ 'db' НЕ НАЙДЕН! Проблема в services или отступах."
-            exit 1
-          fi
-          
-          echo "Пробуем подключиться через pg_isready (встроенная утилита postgres)..."
-          # pg_isready идёт в образе postgres, но его нужно вызвать правильно. 
-          # Проще проверить через telnet/nc, если есть, или просто показать, что имя резолвится.
-          # getent выше уже доказал, что DNS внутри раннера видит 'db'.
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
-
-      # ШАГ: Миграции (теперь запустится только если DEBUG прошёл успешно)
       - name: Apply DB Migrations
         run: alembic upgrade head
         env:
