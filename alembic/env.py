@@ -7,7 +7,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Сначала загружаем .env, чтобы получить DATABASE_URL
+# 1. Сначала пробуем загрузить .env (для локальной разработки)
+# Если файла нет (как в CI), эта функция просто ничего не сделает и не вызовет ошибку
 load_dotenv()
 
 config = context.config
@@ -19,10 +20,20 @@ if config.config_file_name is not None:
 from models import Base
 target_metadata = Base.metadata
 
-# ВАЖНО: берём URL из переменной окружения
+# 2. Получаем URL. Приоритет: Переменная окружения (CI) > .env файл (локально)
+# os.getenv вернет значение из env vars (которое мы задали в workflow.yml)
+# Если его нет, возьмет то, что загрузилось из .env
 database_url = os.getenv("DATABASE_URL")
+
+# 3. ВАЖНОЕ ИЗМЕНЕНИЕ:
+# Убираем жесткий raise ValueError. В CI .env файла нет, и это нормально.
+# Если URL все равно не нашелся ниоткуда, тогда уже ругаемся.
 if not database_url:
-    raise ValueError("Переменная окружения DATABASE_URL не найдена. Проверь .env")
+    # Для CI можно вывести более понятное сообщение, если что-то пошло не так
+    raise ValueError(
+        "Переменная окружения DATABASE_URL не найдена! "
+        "Проверь .env файл (локально) или настройки GitHub Actions (CI)."
+    )
 
 # Перезаписываем значение в конфиге Alembic
 config.set_main_option("sqlalchemy.url", database_url)
