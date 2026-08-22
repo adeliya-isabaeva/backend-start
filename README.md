@@ -55,7 +55,7 @@
 
    ```python
 DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
-   ```
+
 6. Примените миграции:
 
    ```bash
@@ -72,11 +72,11 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
 После запуска сервера откройте:
 
-    Swagger UI (интерактивная документация и тесты эндпоинтов):
+- Swagger UI (интерактивная документация и тесты эндпоинтов):
 
     `http://localhost:8000/docs`
 
-    ReDoc (альтернативная документация):
+- ReDoc (альтернативная документация):
 
     `http://localhost:8000/redoc`
 
@@ -84,12 +84,14 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
 ##Тесты
 
-    Локально: 
+- Локально:
+
    ```bash
    pytest
 
-    Автоматически: при каждом push тесты запускаются в CI через 
-  `.github/workflows/ci.yml`.
+- Автоматически: при каждом push тесты запускаются в CI через
+
+   `.github/workflows/ci.yml`.
 
 ## Примеры запросов (curl)
 
@@ -97,20 +99,27 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
  
    ```bash
    uvicorn main:app --reload
+   
+Быстрый старт
 
-### Быстрый старт
+### Статус сервера
 
    ```bash
-# Статус сервера
    curl http://localhost:8000/
 
-# Список товаров
+### Список товаров
+
+   ```bash
    curl http://localhost:8000/items
 
-# Товар по ID
+### Товар по ID
+
+   ```bash
    curl http://localhost:8000/items/1
 
-# Создание товара (POST)
+### Создание товара (POST)
+
+   ```bash
    curl -X POST http://localhost:8000/items \
   -H "Content-Type: application/json" \
   -d "{\"name\":\"Планшет\",\"price\":45000,\"stock_quantity\":7,\"description\":\"Планшет для учёбы\"}"
@@ -118,6 +127,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 ## Что будет в ответе (примеры)
 
 ### От `GET /`
+
 ```json
 {
   "status": "ok",
@@ -125,6 +135,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 }
 
 ### От POST /items (успех, 201 Created)
+
 ```json
 {
   "id": 5,
@@ -135,6 +146,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 }
 
 ### От GET /items/999 (товар не найден)
+
 ```json
 {
   "detail": "Товар не найден"
