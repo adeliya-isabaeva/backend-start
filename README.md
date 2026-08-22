@@ -99,23 +99,23 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
  
    ```bash
    uvicorn main:app --reload
-   
-Быстрый старт
-
+   ````
 ### Статус сервера
 
    ```bash
    curl http://localhost:8000/
-
+   ```
 ### Список товаров
 
    ```bash
    curl http://localhost:8000/items
+   ```
 
 ### Товар по ID
 
    ```bash
    curl http://localhost:8000/items/1
+   ```
 
 ### Создание товара (POST)
 
@@ -123,6 +123,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
    curl -X POST http://localhost:8000/items \
   -H "Content-Type: application/json" \
   -d "{\"name\":\"Планшет\",\"price\":45000,\"stock_quantity\":7,\"description\":\"Планшет для учёбы\"}"
+   ```
 
 ## Что будет в ответе (примеры)
 
@@ -133,6 +134,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
   "status": "ok",
   "message": "Сервер работает"
 }
+```
 
 ### От POST /items (успех, 201 Created)
 
@@ -144,6 +146,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
   "stock_quantity": 7,
   "description": "Планшет для учёбы"
 }
+```
 
 ### От GET /items/999 (товар не найден)
 
@@ -151,9 +154,10 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 {
   "detail": "Товар не найден"
 }
+```
 (и статус 404)
 
-## Примеры работы API
+## Примеры работы API 
 
 ### Документация и общая структура
 Здесь представлена автоматически сгенерированная документация Swagger UI, где видны все доступные эндпоинты и их методы.
@@ -180,7 +184,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
 ![Создание товара (POST)](screenshots/post-items-201-created.png)
 
-##Структура проекта
+## Структура проекта
 
     `main.py` — роуты и эндпоинты
     `repository.py` — логика работы с БД (CRUD)
@@ -191,6 +195,6 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
     `.github/workflows/ci.yml` — настройка CI
     `.env`, `.env.example` — переменные окружения
 
-##Статус
+## Статус
 
 Проект учебный: сделан для отработки стека FastAPI + PostgreSQL + CI. Не предназначен для продакшена.
