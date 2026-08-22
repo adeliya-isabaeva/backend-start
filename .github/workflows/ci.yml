@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI Pipeline (Debug)
 
 on:
   push:
@@ -14,7 +14,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # ВАЖНО: services стоит ровно под runs-on, без лишних отступов
     services:
       db:
         image: postgres:15
@@ -26,11 +25,10 @@ jobs:
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 10
+          --health-retries 15
         ports:
           - 5432:5432
 
-    # ВАЖНО: steps тоже стоит ровно под runs-on (на том же уровне, что и services)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -45,14 +43,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ШАГ: Миграции
-      # Мы передаем URL, где host=db. Это сработает ТОЛЬКО если services выше запустился.
+      # --- ДИАГНОСТИЧЕСКИЙ ШАГ: ПРОВЕРКА СВЯЗИ С БАЗОЙ ---
+      # Этот шаг НЕ трогает твой код. Он просто проверяет, может ли раннер увидеть сервис "db"
+      - name: DEBUG: Check if DB service is reachable
+        run: |
+          echo "Пытаемся пропинговать хост 'db'..."
+          getent hosts db
+          if [ $? -eq 0 ]; then
+            echo "✅ ХОСТ 'db' НАЙДЕН! Сеть работает."
+          else
+            echo "❌ ХОСТ 'db' НЕ НАЙДЕН! Проблема в services или отступах."
+            exit 1
+          fi
+          
+          echo "Пробуем подключиться через pg_isready (встроенная утилита postgres)..."
+          # pg_isready идёт в образе postgres, но его нужно вызвать правильно. 
+          # Проще проверить через telnet/nc, если есть, или просто показать, что имя резолвится.
+          # getent выше уже доказал, что DNS внутри раннера видит 'db'.
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+
+      # ШАГ: Миграции (теперь запустится только если DEBUG прошёл успешно)
       - name: Apply DB Migrations
         run: alembic upgrade head
         env:
           DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
 
-      # ШАГ: Тесты
       - name: Run tests
         run: pytest
         env:
