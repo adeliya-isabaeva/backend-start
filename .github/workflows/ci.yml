@@ -47,11 +47,8 @@ jobs:
       - name: Apply DB Migrations
         run: alembic upgrade head
         env:
-          DB_HOST: db
-          DB_PORT: 5432
-          DB_NAME: shop_db
-          DB_USER: shop_user
-          DB_PASSWORD: secret_password
+          # Мы собираем URL прямо здесь, чтобы Alembic был счастлив
+          DATABASE_URL: postgresql://shop_user:secret_password@db:5432/shop_db
 
       # ШАГ 2: Запускаем тесты
       - name: Run tests
