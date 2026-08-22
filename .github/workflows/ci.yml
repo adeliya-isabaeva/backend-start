@@ -1,4 +1,4 @@
-name: CI Pipeline (Build & Migrate)
+name: CI with Manual DB
 
 on:
   push:
@@ -14,19 +14,6 @@ jobs:
   build-and-migrate:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: shop-db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 15
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -40,13 +27,45 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        python -m alembic --version
 
-    # ГЛАВНОЕ ИЗМЕНЕНИЕ ЗДЕСЬ:
-    - name: Wait for DB to fully start
-      run: sleep 15
+    # ШАГ 1: Поднимаем базу данных вручную через Docker
+    - name: Start PostgreSQL container
+      run: |
+        docker run -d --name test-db \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_PASSWORD=postgres \
+          -e POSTGRES_DB=shop-db \
+          -p 5432:5432 \
+          postgres:15-alpine
 
+    # ШАГ 2: Ждем, пока база реально будет готова принимать соединения
+    - name: Wait for DB to be ready
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        # Пробуем подключиться каждые 2 секунды, максимум 30 попыток (1 минута)
+        for i in {1..30}; do
+          if docker exec test-db pg_isready -U postgres -d shop-db; then
+            echo "Database is ready!"
+            break
+          fi
+          echo "Waiting... ($i/30)"
+          sleep 2
+        done
+        if [ $? -ne 0 ]; then
+          echo "ERROR: Database did not start in time!"
+          exit 1
+        fi
+
+    # ШАГ 3: Запускаем миграции
     - name: Run Alembic Migrations
       env:
-        DATABASE_URL: postgresql://postgres:postgres@postgres:5432/shop-db
+        # ВАЖНО: Здесь хост localhost, потому что база крутится в том же раннере
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shop-db
       run: python -m alembic upgrade head
+
+    # ШАГ 4: Останавливаем и удаляем базу (чтобы не засорять раннер)
+    - name: Cleanup DB container
+      if: always()
+      run: |
+        docker stop test-db || true
+        docker rm test-db || true
