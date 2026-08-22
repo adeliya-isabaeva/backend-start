@@ -13,11 +13,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    # ВАЖНО: services стоит ровно под runs-on, без лишних отступов
     services:
       db:
         image: postgres:15
         env:
-          # В CI мы используем стандартного пользователя postgres
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
@@ -29,6 +30,7 @@ jobs:
         ports:
           - 5432:5432
 
+    # ВАЖНО: steps тоже стоит ровно под runs-on (на том же уровне, что и services)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -43,18 +45,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ШАГ 1: Миграции
-      # Мы жестко задаем URL здесь. Он ПЕРЕКРОЕТ любые другие настройки в коде.
-      # Формат: postgresql://user:pass@host:port/dbname
-      # host=db (это имя сервиса из блока services выше)
+      # ШАГ: Миграции
+      # Мы передаем URL, где host=db. Это сработает ТОЛЬКО если services выше запустился.
       - name: Apply DB Migrations
         run: alembic upgrade head
         env:
           DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
 
-      # ШАГ 2: Тесты
-      # Если твои тесты собирают URL из отдельных переменных (DB_HOST, DB_USER и т.д.),
-      # мы передаем им те же самые данные, что и для миграций.
+      # ШАГ: Тесты
       - name: Run tests
         run: pytest
         env:
@@ -63,5 +61,3 @@ jobs:
           DB_NAME: postgres
           DB_USER: postgres
           DB_PASSWORD: postgres
-          # Если твой код тестов тоже смотрит на DATABASE_URL, раскомментируй строку ниже:
-          # DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
