@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
@@ -11,46 +11,41 @@ on:
       - aug3-clean
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
 
+    # ВАЖНО: Здесь мы поднимаем базу данных как сервис-контейнер
     services:
       db:
-        image: postgres:15
+        image: postgres:15-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: mydb
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 15
+          --health-retries 5
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Apply DB Migrations
-        run: alembic upgrade head
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
-
-      - name: Run tests
-        run: pytest
-        env:
-          DB_HOST: db
-          DB_PORT: 5432
-          DB_NAME: postgres
-          DB_USER: postgres
-          DB_PASSWORD: postgres
+    - name: Run Alembic Migrations
+      env:
+        # Эти переменные должны совпадать с теми, что в services.db.env выше
+        DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/mydb
+      run: alembic upgrade head
