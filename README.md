@@ -54,7 +54,7 @@
 Проверьте, что DATABASE_URL указывает на ваш PostgreSQL, например:
 
    ```python
-DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
+   DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
 6. Примените миграции:
 
@@ -82,7 +82,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
     Важно: Swagger генерируется самим FastAPI и доступен только когда сервер запущен и успешно подключена база данных.
 
-##Тесты
+## Тесты
 
 - Локально:
 
@@ -169,6 +169,8 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
 ![Успешный GET-запрос (список)](screenshots/get-items-200-ok.png)
 
+**Примечание**: Если ты уже добавил товары в базу (как на скриншотах), ты увидишь список объектов. Для быстрого наполнения базы можно использовать скрипт seed_data.py (если есть) или отправить несколько POST-запросов.
+
 ### Получение элемента по ID
 Протестированы оба сценария работы эндпоинта `GET /items/{item_id}`:
 *   **Успешный ответ (200 OK):** элемент найден.
@@ -186,14 +188,14 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
 
 ## Структура проекта
 
-    `main.py` — роуты и эндпоинты
-    `repository.py` — логика работы с БД (CRUD)
-    `schemas.py` — Pydantic-модели
-    `database.py` — настройка сессии и подключения к PostgreSQL
-    `alembic/` — миграции
-    `tests/` — автотесты
-    `.github/workflows/ci.yml` — настройка CI
-    `.env`, `.env.example` — переменные окружения
+- `main.py` - роуты и эндпоинты
+- `repository.py` — логика работы с БД (CRUD)
+- `schemas.py` — Pydantic-модели
+- `database.py` — настройка сессии и подключения к PostgreSQL
+- `alembic/` — миграции
+- `tests/` — автотесты
+- `.github/workflows/ci.yml` — настройка CI
+- `.env`, `.env.example` — переменные окружения
 
 ## Статус
 
