@@ -17,7 +17,7 @@
 - `GET /items/{item_id}` — товар по ID
 - `POST /items` — создание товара
 
-## Стек
+## Стек технологий
 
 - FastAPI
 - SQLAlchemy (ORM)
@@ -27,44 +27,103 @@
 - pytest (тесты)
 - GitHub Actions (CI)
 
-## Как запустить локально
+## Что умеет проект
 
-1. **Запустите PostgreSQL** (локально или в Docker).  
-   Если используете Docker:
+- Проверка статуса сервера (`GET /`)
+- Получение списка товаров (`GET /items`)
+- Получение товара по ID (`GET /items/{item_id}`)
+- Создание товара (`POST /items`)
+- Автоматическая проверка через тесты (pytest)
+- Автоматические миграции БД (Alembic)
+- CI-проверка при каждом push (GitHub Actions)
+
+## Быстрый старт (одной командой)
+
+Этот способ поднимает PostgreSQL, применяет миграции и запускает API — всё в контейнерах.
+
+⚠️ Важно: убедитесь, что у вас установлен Docker и Docker Compose. Проверить можно командой `docker compose version`.
+
+1. Клонируйте репозиторий:
+1. Клонируй репозиторий:
+
+   ```bash
+   git clone <ссылка_на_твой_репозиторий>
+   cd shop-project
+   ```
+
+2. Создай файл .env на основе примера:
+    
+    ```bash
+    cp .env.example .env
+   ```
+
+**Примечание**: Не редактируй .env.example. Реальные значения (пароли, токены) пиши только в .env, который не попадает в Git.
+
+3. Открой .env в редакторе и заполни переменные (обязательно проверь `DATABASE_URL`).
+    
+4. Собери и запусти контейнеры:
+
+    ```bash
+    docker compose up -d --build
+   ```
+
+Сервер будет доступен по адресу: `http://127.0.0.1:8000`.
+
+Документация (Swagger UI): `http://localhost:8000/docs`.
+
+## Альтернативный запуск (без Docker, для разработки и отладки)
+
+Используйте этот вариант, если хотите запускать Python и PostgreSQL локально (например, чтобы удобнее ставить точки останова в PyCharm).
+
+1. **Запустите PostgreSQL** (локально или в Docker).
  
    ```bash
-   docker compose up -d.
+   docker compose up -d
+    ```
+
+Если PostgreSQL уже установлен локально, можно не использовать Docker.
 
 2. Создайте виртуальное окружение:
 
    ```bash
    python -m venv venv
+    ```
 
-3. Активируйте его (Windows):
+3. Активируйте его:
 
+- Windows
    ```bash
    venv\Scripts\activate
+    ```
+- macOS / Linux
+    ```bash
+  source venv/bin/activate
+    ```
 
 4. Установите зависимости:
 
    ```bash
    pip install -r requirements.txt
+    ```
 
 5. Настройте переменные окружения: создайте .env на основе .env.example.
-Проверьте, что DATABASE_URL указывает на ваш PostgreSQL, например:
+Проверьте, что `DATABASE_URL` указывает на ваш PostgreSQL, например:
 
    ```python
    DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/shop_db
+    ```
 
 6. Примените миграции:
 
    ```bash
    alembic upgrade head
+    ```
 
 7. Запустите сервер:
 
    ```bash
    uvicorn main:app --reload
+    ```
 
 Сервер будет доступен по адресу: `http://127.0.0.1:8000`.
 
@@ -88,6 +147,7 @@
 
    ```bash
    pytest
+    ```
 
 - Автоматически: при каждом push тесты запускаются в CI через
 
@@ -201,4 +261,4 @@
 
 Проект учебный: сделан для отработки стека FastAPI + PostgreSQL + CI. Не предназначен для продакшена.
 
-Last checked: 22.08.2026
+
