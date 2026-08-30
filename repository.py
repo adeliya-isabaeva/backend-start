@@ -1,27 +1,39 @@
 from typing import List, Optional, Dict
 from sqlalchemy import text
-from database import get_db
-from sqlalchemy.orm import Session
+from contextlib import contextmanager
+from database import SessionLocal
 
-def get_all_items() -> List[Dict]:
-    session = next(get_db())
+@contextmanager
+def get_session():
+    """
+    Контекстный менеджер для сессии SQLAlchemy.
+    - Создаёт сессию.
+    - При успехе делает commit.
+    - При ошибке делает rollback.
+    - Всегда закрывает сессию.
+    """
+    session = SessionLocal()
     try:
-        result = session.execute(
-            text("SELECT id, name, price, stock_quantity, description FROM items")
-        )
-        return [dict(row) for row in result.mappings()]
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     finally:
         session.close()
 
 
-def create_item(
-    name: str,
-    price: float,
-    stock_quantity: int,
-    description: Optional[str] = None,
-) -> Dict:
-    session = next(get_db())
-    try:
+def get_all_items() -> List[Dict]:
+    with get_session() as session:
+        result = session.execute(
+            text("SELECT id, name, price, stock_quantity, description FROM items")
+        )
+        # dict(row) — самый безопасный способ превратить строку в словарь
+        return [dict(row) for row in result.mappings()]
+
+
+def create_item(name: str, price: float, stock_quantity: int, description: Optional[str] = None) -> Dict:
+    with get_session() as session:
         result = session.execute(
             text(
                 """
@@ -37,21 +49,15 @@ def create_item(
                 "description": description,
             },
         )
-        session.commit()
         row = result.mappings().one()
         return dict(row)
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
 
 
-def get_item_by_id(item_id: int, db: Session) -> Optional[dict]:  # Получаем сессию снаружи
-    result = db.execute(
-        text("SELECT id, name, price, stock_quantity, description FROM items WHERE id = :id"),
-        {"id": item_id},
-    )
-    row = result.mappings().first()
-    return dict(row) if row else None
-    # Никаких try/finally, никаких close() — это теперь забота того, кто вызвал функцию
+def get_item_by_id(item_id: int) -> Optional[dict]:
+    with get_session() as session:
+        result = session.execute(
+            text("SELECT id, name, price, stock_quantity, description FROM items WHERE id = :id"),
+            {"id": item_id}
+        )
+        row = result.mappings().first()
+        return dict(row) if row else None
